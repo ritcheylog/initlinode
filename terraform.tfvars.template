@@ -1,0 +1,18 @@
+# Instance Configuration
+instance_label = "my-linode-instance"
+instance_type = "g6-standard-1"
+region       = "us-east"
+image        = "linode/ubuntu22.04"
+tags         = ["web", "production"]
+
+# User Configuration
+username     = "admin"
+# Paste your public key between the quotes (starts with 'ssh-rsa' or similar)
+ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2E... user@example.com"
+
+# Firewall Configuration
+firewall_id  = "12345"  # Replace with your existing firewall ID
+
+# Network Configuration
+private_ip   = true
+backups_enabled = false
