@@ -1,0 +1,33 @@
+#cloud-config
+users:
+  - name: ${username}
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    groups: sudo
+    shell: /bin/bash
+
+# Update system and install packages
+package_update: true
+package_upgrade: true
+package_reboot_if_required: true
+
+# Configure SSH to disable password authentication
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-custom.conf
+    content: |
+      PasswordAuthentication no
+      ChallengeResponseAuthentication no
+      UsePAM yes
+      X11Forwarding yes
+      PrintMotd no
+      AcceptEnv LANG LC_*
+      Subsystem sftp /usr/lib/openssh/sftp-server
+
+# Run commands after first boot
+runcmd:
+  - systemctl restart sshd
+  - echo "User setup complete!"
+
+# Final message that will be shown when the instance is ready
+final_message: "The system is finally up, after $UPTIME seconds"
