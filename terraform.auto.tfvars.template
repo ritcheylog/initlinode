@@ -10,8 +10,6 @@ ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2E... user@example.com"
 firewall_id  = "12345"  # Replace with your existing firewall ID
 
 # Instance Configurations
-# Uncomment and modify the instances block below to customize your instances
-/*
 instances = {
   web = {
     instance_type = "g6-standard-2"
@@ -25,7 +23,7 @@ instances = {
     tags          = ["database"]
     label         = "my-database"    # Custom label for this instance
     backups       = true             # Enable backups for database
-  },
+  }
   # Add more instances as needed
   # app = {
   #   instance_type = "g6-standard-2"
@@ -36,4 +34,3 @@ instances = {
   #   backups       = false                 # Optional: enable/disable backups
   # }
 }
-*/
