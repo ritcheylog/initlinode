@@ -17,31 +17,42 @@ variable "ssh_public_key" {
   sensitive   = true
 }
 
-# Optional Variables
+# Instance Configuration
 
-variable "instance_label" {
-  description = "Label for the Linode instance"
+variable "environment" {
+  description = "Environment name (e.g., dev, staging, prod)"
   type        = string
-  default     = "my-linode-instance"
+  default     = "dev"
 }
 
-variable "instance_type" {
-  description = "Linode instance type"
-  type        = string
-  default     = "g6-standard-1"
+variable "instances" {
+  description = "Map of instance configurations"
+  type = map(object({
+    instance_type = string
+    region        = string
+    tags          = list(string)
+    image         = optional(string, "linode/ubuntu22.04")
+    private_ip    = optional(bool, true)
+    backups       = optional(bool, false)
+    label         = optional(string, "")  # Optional custom label for the instance
+  }))
+  default = {
+    web = {
+      instance_type = "g6-standard-2"
+      region        = "us-southeast"
+      tags          = ["web"]
+      label         = "web-server"  # Default label if not specified
+    },
+    db = {
+      instance_type = "g6-standard-2"
+      region        = "us-southeast"
+      tags          = ["database"]
+      label         = "database-server"  # Default label if not specified
+    }
+  }
 }
 
-variable "region" {
-  description = "Linode region"
-  type        = string
-  default     = "us-east"
-}
-
-variable "image" {
-  description = "OS image to use"
-  type        = string
-  default     = "linode/ubuntu22.04"
-}
+# User Configuration
 
 variable "username" {
   description = "Non-root username to create"
