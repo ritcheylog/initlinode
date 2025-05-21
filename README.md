@@ -1,54 +1,111 @@
-# Linode Instance Manager with OpenTofu
+# Linode Multi-Instance Manager with OpenTofu
 
-This OpenTofu project automates the provisioning of Linode instances with secure configurations, including firewall attachment and user management.
+This project automates provisioning and management of multiple Linode instances using OpenTofu (Terraform fork). It supports secure instance creation, firewall attachment, and user management—all with a flexible, map-based configuration.
 
 ## Features
-
-- Create Linode instances with custom specifications
-- Attach instances to existing Linode firewalls
-- Automatically create a non-root user with:
-  - Passwordless SSH authentication using your public key
-  - Passwordless sudo privileges
-- Secure configuration separation using multiple variable files
+- Provision multiple Linode instances at once
+- Per-instance custom labels, types, regions, images, and tags
+- Attach all instances to an existing Linode firewall
+- Automatic non-root user creation with SSH key and passwordless sudo
+- Clean separation of sensitive and non-sensitive configuration
 
 ## Prerequisites
-
-- [OpenTofu](https://opentofu.org/) installed on your local machine
-- A Linode account with API access
-- Linode API token with appropriate permissions
-- Existing firewall in Linode that you want to attach to the instance
-- SSH public key for authentication
+- [OpenTofu](https://opentofu.org/) installed
+- Linode account and API token
+- Existing Linode firewall
+- SSH public key
 
 ## Project Structure
-
 ```
 .
 ├── README.md
-├── main.tf              # Main OpenTofu configuration
-├── variables.tf         # Variable declarations
-├── terraform.tfvars     # Default variable values (gitignored)
-├── terraform.tfvars.template  # Template for terraform.tfvars
-├── secrets.tfvars.template    # Template for secrets.tfvars
-└── .gitignore          # Git ignore file
+├── main.tf                  # Main OpenTofu configuration (multi-instance)
+├── variables.tf             # Variable declarations (instances map)
+├── terraform.auto.tfvars    # Your non-sensitive config (gitignored)
+├── terraform.auto.tfvars.template  # Template for above
+├── secrets.auto.tfvars      # Sensitive config (API token, gitignored)
+├── secrets.auto.tfvars.template    # Template for above
+└── .gitignore
 ```
 
-## Setup Instructions
-
-1. **Clone the repository**
+## Quick Start
+1. **Clone and set up templates:**
    ```bash
    git clone <repository-url>
    cd <repository-directory>
+   cp terraform.auto.tfvars.template terraform.auto.tfvars
+   cp secrets.auto.tfvars.template secrets.auto.tfvars
    ```
-
-2. **Copy the template files**
+2. **Edit `terraform.auto.tfvars`:**
+   - Set your `username`, `ssh_public_key`, `firewall_id`, and `environment`.
+   - Define your instances in the `instances` map (see below).
+3. **Edit `secrets.auto.tfvars`:**
+   - Add your Linode API token.
+4. **Deploy:**
    ```bash
-   cp terraform.tfvars.template terraform.tfvars
-   cp secrets.tfvars.template secrets.tfvars
+   tofu init
+   tofu apply -var-file="secrets.auto.tfvars"
    ```
 
-3. **Configure your variables**
-   - Edit `terraform.tfvars` with your non-sensitive configuration
-   - Edit `secrets.tfvars` with your sensitive information (API tokens, etc.)
+## Example Configuration (`terraform.auto.tfvars`)
+```hcl
+username     = "youruser"
+ssh_public_key = "ssh-ed25519 ..."
+firewall_id  = "12345"
+environment  = "dev"
+
+instances = {
+  web = {
+    instance_type = "g6-standard-2"
+    region        = "us-southeast"
+    tags          = ["web"]
+    label         = "dev-web-01"         # Custom label (shows in Linode)
+    image         = "linode/ubuntu22.04" # Optional (default shown)
+    # private_ip  = true                 # Optional (default: true)
+    # backups     = false                # Optional (default: false)
+  },
+  app = {
+    instance_type = "g6-standard-2"
+    region        = "us-east"
+    tags          = ["app"]
+    label         = "dev-app-01"
+  }
+}
+```
+
+## Variables
+- `instances` (**map**): Keyed by instance name. Each value is an object with:
+  - `label` (string, optional): Custom Linode label (recommended)
+  - `instance_type` (string): Linode type (e.g., "g6-standard-2")
+  - `region` (string): Linode region (e.g., "us-southeast")
+  - `tags` (list): List of tags
+  - `image` (string, optional): OS image (default: "linode/ubuntu22.04")
+  - `private_ip` (bool, optional): Enable private networking (default: true)
+  - `backups` (bool, optional): Enable backups (default: false)
+- `username` (string): Non-root username to create
+- `ssh_public_key` (string): Your SSH public key
+- `firewall_id` (string): ID of the firewall to attach
+- `environment` (string): Suffix for instance naming (e.g., "dev")
+
+## Outputs
+- `instance_ips`: Map of instance names to public IPs
+- `ssh_commands`: Map of instance names to SSH commands
+
+## Security
+- Never commit `secrets.auto.tfvars` or `terraform.auto.tfvars` to version control
+- `.gitignore` is pre-configured to exclude sensitive files
+- The created user will have passwordless sudo—ensure you trust the SSH key
+- Use a Linode API token with minimum required permissions
+
+## Cleanup
+To destroy all created resources:
+```bash
+tofu destroy -var-file="secrets.auto.tfvars"
+```
+
+## License
+[MIT](LICENSE)
+
 
 4. **Initialize OpenTofu**
    ```bash
