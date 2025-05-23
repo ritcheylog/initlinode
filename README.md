@@ -15,6 +15,18 @@ This project automates provisioning and management of multiple Linode instances 
 - Existing Linode firewall
 - SSH public key
 
+**Example: Install OpenTofu on Ubuntu (APT method)**
+```bash
+# Add the OpenTofu APT repository
+echo "deb [trusted=yes] https://packages.opentofu.org/opentofu/stable/ubuntu/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/opentofu.list
+
+# Update package lists
+sudo apt-get update
+
+# Install OpenTofu
+sudo apt-get install opentofu
+```
+
 ## Project Structure
 ```
 .
@@ -44,32 +56,52 @@ This project automates provisioning and management of multiple Linode instances 
 4. **Deploy:**
    ```bash
    tofu init
-   tofu apply -var-file="secrets.auto.tfvars"
+   tofu plan
+   tofu apply
    ```
 
 ## Example Configuration (`terraform.auto.tfvars`)
 ```hcl
-username     = "youruser"
-ssh_public_key = "ssh-ed25519 ..."
-firewall_id  = "12345"
-environment  = "dev"
+# Environment Configuration
+environment = "dev"  # or "staging", "prod", etc.
 
+# User Configuration
+username     = "admin"
+# Paste your public key between the quotes (starts with 'ssh-rsa' or similar)
+ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2E... user@example.com"
+
+# Firewall Configuration
+firewall_id  = "12345"  # Replace with your existing firewall ID
+
+# Instance Configurations
 instances = {
+  # Basic web server example (active by default)
   web = {
     instance_type = "g6-standard-2"
     region        = "us-southeast"
     tags          = ["web"]
-    label         = "dev-web-01"         # Custom label (shows in Linode)
-    image         = "linode/ubuntu22.04" # Optional (default shown)
-    # private_ip  = true                 # Optional (default: true)
-    # backups     = false                # Optional (default: false)
-  },
-  app = {
-    instance_type = "g6-standard-2"
-    region        = "us-east"
-    tags          = ["app"]
-    label         = "dev-app-01"
+    label         = "my-web-server"  # Custom label for this instance
   }
+
+  # Database server example (commented out)
+  # db = {
+  #   instance_type = "g6-standard-4"
+  #   region        = "us-southeast"
+  #   tags          = ["database"]
+  #   label         = "my-database"    # Custom label for this instance
+  #   backups       = true             # Enable backups for database
+  # }
+
+  # Application server example (commented out)
+  # app = {
+  #   instance_type = "g6-standard-2"
+  #   region        = "us-southeast"
+  #   tags          = ["app"]
+  #   label         = "my-app-server"  # Custom label for this instance
+  #   image         = "linode/ubuntu20.04"  # Optional: override default image
+  #   private_ip    = true                  # Optional: enable/disable private IP
+  #   backups       = false                 # Optional: enable/disable backups
+  # }
 }
 ```
 
@@ -100,99 +132,8 @@ instances = {
 ## Cleanup
 To destroy all created resources:
 ```bash
-tofu destroy -var-file="secrets.auto.tfvars"
+tofu destroy
 ```
 
 ## License
-[MIT](LICENSE)
-
-
-4. **Initialize OpenTofu**
-   ```bash
-   tofu init
-   ```
-
-5. **Review the execution plan**
-   ```bash
-   tofu plan -var-file="secrets.tfvars"
-   ```
-
-6. **Apply the configuration**
-   ```bash
-   tofu apply -var-file="secrets.tfvars"
-   ```
-
-## Configuration
-
-### terraform.tfvars.template
-```hcl
-# Instance Configuration
-instance_label = "my-linode-instance"
-instance_type = "g6-standard-1"
-region       = "us-east"
-image        = "linode/ubuntu22.04"
-tags         = ["web", "production"]
-
-# User Configuration
-username     = "admin"
-# Paste your public key between the quotes (starts with 'ssh-rsa' or similar)
-ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2E... user@example.com"
-
-# Firewall Configuration
-firewall_id  = "12345"  # Replace with your existing firewall ID
-
-# Network Configuration
-private_ip   = true
-backups_enabled = false
-```
-
-### secrets.tfvars.template
-```hcl
-# Linode API Token (sensitive)
-linode_token = "your-linode-api-token-here"
-
-# Optional: Root password (if not using SSH key auth)
-# root_pass = ""
-```
-
-## Variables
-
-### Required Variables
-- `linode_token` (string): Your Linode API token with appropriate permissions
-- `firewall_id` (string): ID of the existing firewall to attach
-- `ssh_public_key` (string): Your public SSH key (starts with 'ssh-rsa' or similar)
-
-### Optional Variables
-- `instance_label` (string): Label for the Linode instance (default: "my-linode-instance")
-- `instance_type` (string): Linode instance type (default: "g6-standard-1")
-- `region` (string): Linode region (default: "us-east")
-- `image` (string): OS image to use (default: "linode/ubuntu22.04")
-- `username` (string): Non-root username to create (default: "admin")
-- `private_ip` (bool): Whether to enable private networking (default: true)
-- `backups_enabled` (bool): Whether to enable backups (default: false)
-- `tags` (list): List of tags to apply to the instance
-
-## Security Notes
-
-1. Never commit `secrets.tfvars` or `terraform.tfvars` to version control
-2. The `.gitignore` file is pre-configured to exclude these files
-3. The created user will have passwordless sudo access - ensure you trust the public key being used
-4. It's recommended to use a Linode API token with the minimum required permissions
-
-## Outputs
-
-The module will output the following:
-- `instance_ip`: Public IP address of the created Linode instance
-- `ssh_command`: Example SSH command to connect to the instance as the created user
-
-## Cleanup
-
-To destroy all created resources:
-
-```bash
-tofu destroy -var-file="secrets.tfvars"
-```
-
-## License
-
 [MIT](LICENSE)
