@@ -1,6 +1,8 @@
-# Linode Multi-Instance Manager with OpenTofu
+# Linode Multi-Instance Manager with OpenTofu or Terraform
 
-This project automates provisioning and management of multiple Linode instances using OpenTofu (Terraform fork). It supports secure instance creation, firewall attachment, and user management—all with a flexible, map-based configuration.
+This project automates provisioning and management of multiple Linode instances using OpenTofu (Terraform fork) or Terraform. It supports secure instance creation, firewall attachment, and user management—all with a flexible, map-based configuration.
+
+> **Note:** This module works with both OpenTofu and Terraform. The Quick Start examples use the `tofu` CLI, but you can use `terraform` instead—see below for details.
 
 ## Features
 - Provision multiple Linode instances at once
@@ -41,6 +43,9 @@ sudo apt-get install opentofu
 ```
 
 ## Quick Start
+
+> **Tip:** If you prefer to use Terraform instead of OpenTofu, simply replace `tofu` with `terraform` in all commands below (e.g., `terraform init`, `terraform plan`, `terraform apply`).
+
 1. **Clone and set up templates:**
    ```bash
    git clone <repository-url>
